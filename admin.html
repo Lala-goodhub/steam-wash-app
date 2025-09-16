@@ -7,73 +7,72 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Jua', sans-serif; background-color: #F0F9FF; }
-        .admin-container { background-color: white; border-radius: 20px; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08); border: 1px solid #E0E7FF; }
-        .header-title { color: #1E40AF; }
-        .info-box { background-color: #EFF6FF; border-left: 4px solid #3B82F6; }
-        .btn-primary { background-color: #2563EB; color: white; transition: background-color 0.3s ease; }
-        .btn-primary:hover { background-color: #1D4ED8; }
-        .btn-danger { background-color: #DC2626; color: white; transition: background-color 0.3s ease; }
-        .btn-danger:hover { background-color: #B91C1C; }
-        table { border-collapse: separate; border-spacing: 0; }
-        th, td { border-bottom: 1px solid #E5E7EB; }
-        th { background-color: #F9FAFB; }
+        body { font-family: 'Jua', sans-serif; background-color: #f8fafc; }
+        .admin-container { background-color: white; border-radius: 20px; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08); }
+        .header-title { color: #1e293b; }
+        .section-box { border: 1px solid #e2e8f0; border-radius: 16px; }
+        .upload-area { border: 2px dashed #cbd5e1; border-radius: 12px; transition: all 0.3s; }
+        .upload-area.dragover { border-color: #3b82f6; background-color: #eff6ff; }
+        .status-table th { background-color: #f1f5f9; color: #475569; }
+        .status-table td { border-bottom: 1px solid #e2e8f0; }
+        .btn { border-radius: 12px; transition: all 0.2s ease-in-out; }
+        .btn:disabled { background-color: #94a3b8; cursor: not-allowed; }
+        .btn-primary { background-color: #3b82f6; color: white; }
+        .btn-primary:hover:not(:disabled) { background-color: #2563eb; }
+        .btn-danger { background-color: #ef4444; color: white; }
+        .btn-danger:hover { background-color: #dc2626; }
+        .info-box { background-color: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; }
+        .error-message { color: #dc2626; font-weight: bold; }
+        .month-header { cursor: pointer; transition: background-color 0.2s; }
+        .month-header:hover { background-color: #f1f5f9; }
+        .month-content { max-height: 0; overflow: hidden; transition: max-height 0.5s ease-in-out; }
     </style>
 </head>
 <body class="p-4 sm:p-8">
-    <div class="admin-container max-w-4xl mx-auto p-6 sm:p-8">
-        <div class="text-center mb-8">
-            <h1 class="header-title text-3xl sm:text-4xl font-bold">👑 관리자 페이지 👑</h1>
-            <p class="text-slate-500 mt-2">세차 기록 CSV 파일 관리 및 실시간 신청 현황을 확인합니다.</p>
-        </div>
+    <div class="admin-container max-w-5xl mx-auto p-6 sm:p-10">
+        <header class="text-center mb-10">
+            <h1 class="header-title text-3xl sm:text-4xl font-bold">👑 스팀 세차 관리자 페이지 👑</h1>
+        </header>
 
-        <div class="mb-10">
-            <h2 class="text-xl font-bold text-slate-700 mb-3">1. 세차 기록 관리</h2>
-            <div class="info-box p-4 rounded-lg mb-4">
-                <p class="text-sm text-blue-800">
-                    <strong class="font-bold">CSV 파일 양식 안내:</strong><br>
-                    첫 번째 줄은 제목 줄이어야 합니다. 반드시 <strong class="text-red-600">'이름'</strong>과 <strong class="text-red-600">'월'</strong>이 포함된 열이 있어야 합니다.<br>
-                    (예시: 연번,이름,년도,월)
-                </p>
-            </div>
-            <div class="flex flex-col sm:flex-row items-center gap-4">
-                <input type="file" id="csvFile" accept=".csv" class="flex-grow w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
-                <button id="uploadBtn" class="btn-primary w-full sm:w-auto rounded-full px-6 py-2.5 font-bold text-sm shadow-lg">기록 업로드 & 덮어쓰기</button>
-            </div>
-            <div id="status" class="mt-4 text-center"></div>
-        </div>
-
-        <div>
-            <div class="flex justify-between items-center mb-3">
-                <h2 class="text-xl font-bold text-slate-700">2. 실시간 신청 현황</h2>
-                <button id="clearApplicationsBtn" class="btn-danger rounded-full px-5 py-2 text-xs font-bold shadow-md">신청 목록 전체 삭제</button>
-            </div>
-            <div class="overflow-x-auto bg-white rounded-lg shadow-md">
-                <table class="w-full text-sm text-left text-gray-500">
-                    <thead class="text-xs text-gray-700 uppercase">
-                        <tr>
-                            <th scope="col" class="px-6 py-3">신청일시</th>
-                            <th scope="col" class="px-6 py-3">과정</th>
-                            <th scope="col" class="px-6 py-3">성함</th>
-                            <th scope="col" class="px-6 py-3">차종</th>
-                            <th scope="col" class="px-6 py-3">차량번호</th>
-                            <th scope="col" class="px-6 py-3">선택요일</th>
-                        </tr>
-                    </thead>
-                    <tbody id="applicationList">
-                        <!-- 신청 내역이 여기에 동적으로 추가됩니다 -->
-                    </tbody>
-                </table>
-                 <div id="noApplications" class="text-center py-10 text-slate-400">
-                    아직 접수된 신청이 없습니다.
+        <main class="space-y-10">
+            <!-- CSV Upload Section -->
+            <section class="section-box p-6">
+                <h2 class="text-2xl font-semibold text-slate-800 mb-4">세차 기록 관리</h2>
+                <div class="info-box p-4 rounded-lg mb-6">
+                    <p class="font-bold">✅ CSV 파일 양식 안내</p>
+                    <p class="text-sm mt-1">'연번, 이름, 년도, 월' 순서로 CSV 파일을 작성해주세요. (예: 1, 홍길동, 2025, 9)</p>
                 </div>
-            </div>
-        </div>
+                <div id="uploadArea" class="upload-area p-8 text-center cursor-pointer">
+                    <p class="text-slate-500">여기에 CSV 파일을 드래그하거나<br>클릭해서 파일을 선택하세요.</p>
+                    <input type="file" id="csvFileInput" class="hidden" accept=".csv">
+                </div>
+                <p id="selectedFileName" class="text-center mt-2 text-slate-600 font-semibold"></p>
+                <button id="processUploadBtn" class="btn btn-primary w-full py-2 mt-4" disabled>
+                    기록 업로드<br>&amp; 덮어쓰기
+                </button>
+                <p id="uploadStatus" class="mt-4 text-center font-semibold"></p>
+                <p id="errorMessage" class="error-message text-center mt-2"></p>
+            </section>
+
+            <!-- Application List Section -->
+            <section class="section-box p-6">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
+                    <h2 class="text-2xl font-semibold text-slate-800">실시간 신청 현황</h2>
+                    <div class="flex-shrink-0">
+                        <button id="deleteSelectedBtn" class="btn btn-primary px-4 py-2 text-sm mr-2">선택 삭제</button>
+                        <button id="clearApplicationsBtn" class="btn btn-danger px-4 py-2 text-sm">목록 전체 지우기</button>
+                    </div>
+                </div>
+                <div id="monthlyApplicationsContainer" class="space-y-2">
+                    <!-- Monthly data will be populated here -->
+                </div>
+            </section>
+        </main>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, doc, addDoc, getDocs, deleteDoc, onSnapshot, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, doc, onSnapshot, query, writeBatch, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAdoYLtY5BbKh2YSQ3CoFkMKafCY6D87jE",
@@ -87,122 +86,204 @@ const firebaseConfig = {
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        const fileInput = document.getElementById('csvFile');
-        const uploadBtn = document.getElementById('uploadBtn');
-        const statusDiv = document.getElementById('status');
-        const applicationList = document.getElementById('applicationList');
-        const noApplications = document.getElementById('noApplications');
-        const clearApplicationsBtn = document.getElementById('clearApplicationsBtn');
+        const uploadArea = document.getElementById('uploadArea');
+        const csvFileInput = document.getElementById('csvFileInput');
+        const uploadStatus = document.getElementById('uploadStatus');
+        const errorMessage = document.getElementById('errorMessage');
+        const selectedFileName = document.getElementById('selectedFileName');
+        const processUploadBtn = document.getElementById('processUploadBtn');
+        let selectedFile = null;
 
-        // CSV 업로드 기능
-        uploadBtn.addEventListener('click', async () => {
-            const file = fileInput.files[0];
-            if (!file) {
-                statusDiv.textContent = '먼저 CSV 파일을 선택해주세요.';
-                statusDiv.className = 'mt-4 text-center text-yellow-600';
+        const monthlyApplicationsContainer = document.getElementById('monthlyApplicationsContainer');
+        const clearApplicationsBtn = document.getElementById('clearApplicationsBtn');
+        const deleteSelectedBtn = document.getElementById('deleteSelectedBtn');
+
+        // --- CSV 업로드 로직 (이전과 동일) ---
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => uploadArea.addEventListener(eventName, preventDefaults, false));
+        function preventDefaults(e) { e.preventDefault(); e.stopPropagation(); }
+        ['dragenter', 'dragover'].forEach(eventName => uploadArea.addEventListener(eventName, () => uploadArea.classList.add('dragover'), false));
+        ['dragleave', 'drop'].forEach(eventName => uploadArea.addEventListener(eventName, () => uploadArea.classList.remove('dragover'), false));
+        uploadArea.addEventListener('drop', handleDrop, false);
+        uploadArea.addEventListener('click', () => csvFileInput.click());
+        csvFileInput.addEventListener('change', (e) => handleFiles(e.target.files));
+        processUploadBtn.addEventListener('click', () => {
+            if (selectedFile) {
+                const reader = new FileReader();
+                reader.onload = (e) => processCSV(e.target.result);
+                reader.readAsText(selectedFile);
+            }
+        });
+        function handleDrop(e) { handleFiles(e.dataTransfer.files); }
+        function handleFiles(files) {
+            if (files.length > 0) {
+                const file = files[0];
+                if (file.type !== 'text/csv' && !file.name.endsWith('.csv')) {
+                    displayError('CSV 파일만 업로드할 수 있습니다.');
+                    selectedFile = null; selectedFileName.textContent = ''; processUploadBtn.disabled = true; return;
+                }
+                selectedFile = file; selectedFileName.textContent = `선택된 파일: ${file.name}`; processUploadBtn.disabled = false; clearMessages();
+            }
+        }
+        async function processCSV(csvText) {
+            clearMessages(); uploadStatus.textContent = 'CSV 파일 처리 중...'; processUploadBtn.disabled = true;
+            const lines = csvText.split(/\r\n|\n/).filter(line => line.trim() !== '');
+            if (lines.length < 2) { displayError("CSV 파일에 데이터가 없습니다 (헤더 제외)."); processUploadBtn.disabled = selectedFile ? false : true; return; }
+            const header = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+            const nameIndex = header.indexOf('이름'); const monthIndex = header.indexOf('월'); const yearIndex = header.indexOf('년도');
+            if (nameIndex === -1 || monthIndex === -1) { displayError("CSV 파일 헤더에 '이름'과 '월'이 포함되어야 합니다."); processUploadBtn.disabled = selectedFile ? false : true; return; }
+            try {
+                const batch = writeBatch(db);
+                const historySnapshot = await getDocs(collection(db, "washHistory"));
+                historySnapshot.forEach(doc => batch.delete(doc.ref));
+                for (let i = 1; i < lines.length; i++) {
+                    const data = lines[i].split(',');
+                    const name = data[nameIndex]?.trim().replace(/"/g, '');
+                    const month = parseInt(data[monthIndex]?.trim().replace(/"/g, ''), 10);
+                    const year = yearIndex !== -1 ? parseInt(data[yearIndex]?.trim().replace(/"/g, ''), 10) : new Date().getFullYear();
+                    if (name && !isNaN(month) && !isNaN(year)) {
+                        const date = new Date(year, month - 1, 1);
+                        batch.set(doc(db, "washHistory", name), { name, date });
+                    }
+                }
+                await batch.commit();
+                uploadStatus.textContent = `✅ ${lines.length - 1}개의 세차 기록을 성공적으로 덮어썼습니다!`;
+            } catch (error) {
+                console.error("Firestore 저장 오류:", error);
+                if (error.code === 'permission-denied') { displayError('🚨 Firestore 저장 권한이 없습니다! 파이어베이스 "규칙" 탭이 "allow read, write: if true;"로 설정되었는지 다시 확인해주세요!'); } 
+                else { displayError(`Firestore에 데이터를 저장하는 중 문제가 발생했습니다: ${error.message}`); }
+            } finally { processUploadBtn.disabled = selectedFile ? false : true; }
+        }
+        
+        // --- 실시간 신청 현황 (월별 그룹핑) ---
+        const q = query(collection(db, "applications"));
+        onSnapshot(q, (querySnapshot) => {
+            const groupedByMonth = {};
+            querySnapshot.forEach((doc) => {
+                const app = doc.data();
+                if (app.timestamp && app.timestamp.toDate) {
+                    const date = app.timestamp.toDate();
+                    const monthKey = `${date.getFullYear()}년 ${date.getMonth() + 1}월`;
+                    if (!groupedByMonth[monthKey]) {
+                        groupedByMonth[monthKey] = [];
+                    }
+                    groupedByMonth[monthKey].push({ id: doc.id, ...app });
+                }
+            });
+
+            monthlyApplicationsContainer.innerHTML = '';
+            const sortedMonths = Object.keys(groupedByMonth).sort((a, b) => new Date(b.replace('년 ', '-').replace('월', '')) - new Date(a.replace('년 ', '-').replace('월', '')));
+
+            if (sortedMonths.length === 0) {
+                monthlyApplicationsContainer.innerHTML = '<p class="text-center text-slate-500 py-4">아직 신청 내역이 없습니다.</p>';
                 return;
             }
 
-            statusDiv.textContent = '파일을 읽고 Firestore와 통신하는 중...';
-            statusDiv.className = 'mt-4 text-center text-blue-600';
+            sortedMonths.forEach(monthKey => {
+                const applications = groupedByMonth[monthKey];
+                const monthContainer = document.createElement('div');
+                monthContainer.className = 'border border-slate-200 rounded-lg';
+                
+                const header = document.createElement('button');
+                header.className = 'month-header w-full text-left p-4 font-semibold text-lg text-slate-700 flex justify-between items-center';
+                header.innerHTML = `<span>${monthKey} (${applications.length}건)</span><span>▼</span>`;
+                
+                const content = document.createElement('div');
+                content.className = 'month-content';
 
-            const reader = new FileReader();
-            reader.onload = async (event) => {
-                const csvData = event.target.result;
-                const lines = csvData.split(/\r\n|\n/);
-                const headerLine = lines[0];
+                const tableHTML = `
+                    <div class="overflow-x-auto">
+                        <table class="status-table w-full text-left">
+                            <thead>
+                                <tr>
+                                    <th class="p-3"><input type="checkbox" class="select-month-checkbox w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"></th>
+                                    <th class="p-3">신청시간</th>
+                                    <th class="p-3">과정</th>
+                                    <th class="p-3">성함</th>
+                                    <th class="p-3">차종</th>
+                                    <th class="p-3">차량번호</th>
+                                    <th class="p-3">신청요일</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${applications.map(app => {
+                                    const timestamp = app.timestamp?.toDate()?.toLocaleString('ko-KR') || '날짜 정보 없음';
+                                    const days = Array.isArray(app.selectedDays) ? app.selectedDays.join(', ') : '요일 정보 없음';
+                                    return `
+                                        <tr>
+                                            <td class="p-3"><input type="checkbox" class="row-checkbox w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500" data-doc-id="${app.id}"></td>
+                                            <td class="p-3 text-sm">${timestamp}</td>
+                                            <td class="p-3">${app.course || ''}</td>
+                                            <td class="p-3">${app.name || ''}</td>
+                                            <td class="p-3">${app.carType || ''}</td>
+                                            <td class="p-3">${app.carNumber || ''}</td>
+                                            <td class="p-3 text-sm">${days}</td>
+                                        </tr>
+                                    `;
+                                }).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+                content.innerHTML = tableHTML;
+                monthContainer.appendChild(header);
+                monthContainer.appendChild(content);
+                monthlyApplicationsContainer.appendChild(monthContainer);
 
-                try {
-                    const historyCollection = collection(db, "washHistory");
-                    
-                    const snapshot = await getDocs(historyCollection);
-                    const deletePromises = snapshot.docs.map(doc => deleteDoc(doc.ref));
-                    await Promise.all(deletePromises);
-
-                    const addPromises = [];
-                    const header = headerLine.split(',').map(h => h.trim());
-                    const nameIndex = header.findIndex(h => h.includes('이름'));
-                    const monthIndex = header.findIndex(h => h.includes('월'));
-
-                    if (nameIndex === -1 || monthIndex === -1) {
-                        throw new Error("CSV 파일에 '이름'과 '월' 열이 포함되어야 합니다.");
-                    }
-
-                    for (let i = 1; i < lines.length; i++) {
-                        const line = lines[i];
-                        if (line.trim() === '') continue;
-                        const values = line.split(',');
-                        const name = values[nameIndex] ? values[nameIndex].trim() : '';
-                        const month = values[monthIndex] ? parseInt(values[monthIndex].trim(), 10) : NaN;
-
-                        if (name && !isNaN(month)) {
-                            const currentYear = new Date().getFullYear();
-                            const washDate = new Date(currentYear, month - 1, 15);
-                            addPromises.push(addDoc(historyCollection, { name, washDate }));
-                        }
-                    }
-                    await Promise.all(addPromises);
-                    statusDiv.textContent = '✅ 세차 기록을 성공적으로 Firestore에 저장했습니다!';
-                    statusDiv.className = 'mt-4 text-center text-green-600 font-bold';
-
-                } catch (error) {
-                    console.error("Firestore 저장 중 심각한 오류 발생:", error);
-                    let errorMessage = 'Firestore에 데이터를 저장하는 중 문제가 발생했습니다.';
-                    if (error.code === 'permission-denied') {
-                        errorMessage = '🚨 Firestore 저장 권한이 없습니다! 파이어베이스 "규칙" 탭이 "allow read, write: if true;"로 설정되었는지 다시 확인해주세요!';
-                    } else if (error.message.includes('열이 포함되어야 합니다')) {
-                        errorMessage = '🚨 업로드한 CSV 파일에 "이름" 또는 "월" 열이 빠져있습니다. 파일 양식을 다시 확인해주세요!';
+                header.addEventListener('click', () => {
+                    const isOpened = content.style.maxHeight;
+                    if (isOpened && isOpened !== '0px') {
+                        content.style.maxHeight = '0px';
+                        header.querySelector('span:last-child').textContent = '▼';
                     } else {
-                        errorMessage += `<br><span class="text-xs">상세 오류(개발자용): ${error.message}</span>`;
+                        content.style.maxHeight = content.scrollHeight + 'px';
+                        header.querySelector('span:last-child').textContent = '▲';
                     }
-                    statusDiv.innerHTML = errorMessage;
-                    statusDiv.className = 'mt-4 text-center text-red-600 leading-relaxed font-bold';
-                }
-            };
-            reader.readAsText(file, 'EUC-KR');
+                });
+                
+                content.querySelector('.select-month-checkbox').addEventListener('click', (e) => {
+                    content.querySelectorAll('.row-checkbox').forEach(checkbox => {
+                        checkbox.checked = e.target.checked;
+                    });
+                });
+            });
+
+        }, (error) => {
+            console.error("Firestore 실시간 리스너 오류:", error);
+            let detailedMessage = `🚨 신청 현황 로딩 실패 (${error.code}). 인터넷 연결 또는 파이어베이스 설정을 확인해주세요!`;
+            if (error.code === 'unavailable') { detailedMessage = '🚨 Firestore 서버에 연결할 수 없습니다. 인터넷 연결이 불안정하거나, HTML에 입력한 "비밀 열쇠(firebaseConfig)"가 정확한지 다시 한번 확인해주세요!'; }
+            else if (error.code === 'permission-denied') { detailedMessage = '🚨 Firestore 접근 권한이 없습니다! 파이어베이스 "규칙" 탭이 "allow read, write: if true;"로 설정되었는지 다시 확인해주세요!'; }
+            displayError(detailedMessage);
         });
 
-        // 실시간 신청 현황 리스너
-        const q = query(collection(db, "applications"), orderBy("timestamp", "desc"));
-        onSnapshot(q, (snapshot) => {
-            applicationList.innerHTML = '';
-            if (snapshot.empty) {
-                noApplications.style.display = 'block';
-            } else {
-                noApplications.style.display = 'none';
-                snapshot.forEach(doc => {
-                    const data = doc.data();
-                    const tr = document.createElement('tr');
-                    tr.className = "bg-white border-b hover:bg-gray-50";
-                    const timestamp = data.timestamp?.toDate ? data.timestamp.toDate().toLocaleString('ko-KR') : '날짜 없음';
-                    tr.innerHTML = `
-                        <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">${timestamp}</td>
-                        <td class="px-6 py-4">${data.course || ''}</td>
-                        <td class="px-6 py-4">${data.name || ''}</td>
-                        <td class="px-6 py-4">${data.carType || ''}</td>
-                        <td class="px-6 py-4">${data.carNumber || ''}</td>
-                        <td class="px-6 py-4">${(data.selectedDays || []).join(', ')}</td>
-                    `;
-                    applicationList.appendChild(tr);
-                });
+        deleteSelectedBtn.addEventListener('click', async () => {
+            const selectedCheckboxes = document.querySelectorAll('.row-checkbox:checked');
+            if (selectedCheckboxes.length === 0) { alert('삭제할 항목을 선택해주세요.'); return; }
+            if (confirm(`선택된 ${selectedCheckboxes.length}개의 항목을 정말로 삭제하시겠습니까?`)) {
+                try {
+                    const batch = writeBatch(db);
+                    selectedCheckboxes.forEach(checkbox => {
+                        batch.delete(doc(db, "applications", checkbox.dataset.docId));
+                    });
+                    await batch.commit();
+                    alert(`${selectedCheckboxes.length}개의 항목이 삭제되었습니다.`);
+                } catch (error) { console.error("선택 삭제 오류:", error); alert(`선택 항목을 삭제하는 중 오류가 발생했습니다: ${error.message}`); }
             }
         });
 
-        // 신청 목록 삭제 기능
         clearApplicationsBtn.addEventListener('click', async () => {
             if (confirm('정말로 모든 신청 내역을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) {
                 try {
-                    const appCollection = collection(db, "applications");
-                    const snapshot = await getDocs(appCollection);
-                    const deletePromises = snapshot.docs.map(doc => deleteDoc(doc.ref));
-                    await Promise.all(deletePromises);
+                    const querySnapshot = await getDocs(collection(db, "applications"));
+                    const batch = writeBatch(db);
+                    querySnapshot.forEach(doc => batch.delete(doc.ref));
+                    await batch.commit();
                     alert('모든 신청 내역이 삭제되었습니다.');
-                } catch (error) {
-                    console.error("신청 내역 삭제 오류:", error);
-                    alert('신청 내역을 삭제하는 중 오류가 발생했습니다.');
-                }
+                } catch (error) { console.error("삭제 오류:", error); alert(`삭제 중 오류가 발생했습니다: ${error.message}`); }
             }
         });
+
+        function displayError(msg) { errorMessage.textContent = msg; uploadStatus.textContent = ''; }
+        function clearMessages() { uploadStatus.textContent = ''; errorMessage.textContent = ''; }
     </script>
 </body>
 </html>
