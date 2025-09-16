@@ -74,14 +74,14 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, doc, onSnapshot, query, writeBatch, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyAdoYLtY5BbKh2YSQ3CoFkMKafCY6D87jE",
-  authDomain: "saecha-da5c3.firebaseapp.com",
-  projectId: "saecha-da5c3",
-  storageBucket: "saecha-da5c3.firebasestorage.app",
-  messagingSenderId: "770472695100",
-  appId: "1:770472695100:web:0573e866b53ffb41967a39"
-};
+        const firebaseConfig = {
+          apiKey: "AIzaSyAdoYLtY5BbKh2YSQ3CoFkMKafCY6D87jE",
+          authDomain: "saecha-da5c3.firebaseapp.com",
+          projectId: "saecha-da5c3",
+          storageBucket: "saecha-da5c3.appspot.com",
+          messagingSenderId: "770472695100",
+          appId: "1:770472695100:web:0573e866b53ffb41967a39"
+        };
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
@@ -127,7 +127,6 @@ const firebaseConfig = {
         async function processCSV(csvText) {
             clearMessages(); uploadStatus.textContent = 'CSV 파일 처리 중...'; processUploadBtn.disabled = true;
             
-            // ✨ 유령 글자(BOM) 제거 기능 탑재! ✨
             let content = csvText;
             if (content.charCodeAt(0) === 0xFEFF) {
                 content = content.slice(1);
@@ -139,7 +138,13 @@ const firebaseConfig = {
             const header = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
             const nameIndex = header.indexOf('이름'); const monthIndex = header.indexOf('월'); const yearIndex = header.indexOf('년도');
 
-            if (nameIndex === -1 || monthIndex === -1) { displayError("CSV 파일 헤더에 '이름'과 '월'이 포함되어야 합니다."); processUploadBtn.disabled = selectedFile ? false : true; return; }
+            if (nameIndex === -1 || monthIndex === -1) { 
+                // ✨ 초정밀 분석 장비 탑재! ✨
+                const errorDetail = `[감지된 헤더: ${JSON.stringify(header)}]`;
+                displayError(`CSV 파일 헤더에 '이름'과 '월'이 포함되어야 합니다. ${errorDetail}`);
+                processUploadBtn.disabled = selectedFile ? false : true; 
+                return; 
+            }
             try {
                 const batch = writeBatch(db);
                 const historySnapshot = await getDocs(collection(db, "washHistory"));
