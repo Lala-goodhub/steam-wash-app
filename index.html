@@ -91,14 +91,14 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, addDoc, serverTimestamp, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyAdoYLtY5BbKh2YSQ3CoFkMKafCY6D87jE",
-  authDomain: "saecha-da5c3.firebaseapp.com",
-  projectId: "saecha-da5c3",
-  storageBucket: "saecha-da5c3.firebasestorage.app",
-  messagingSenderId: "770472695100",
-  appId: "1:770472695100:web:0573e866b53ffb41967a39"
-};
+        const firebaseConfig = {
+          apiKey: "AIzaSyAdoYLtY5BbKh2YSQ3CoFkMKafCY6D87jE",
+          authDomain: "saecha-da5c3.firebaseapp.com",
+          projectId: "saecha-da5c3",
+          storageBucket: "saecha-da5c3.appspot.com",
+          messagingSenderId: "770472695100",
+          appId: "1:770472695100:web:0573e866b53ffb41967a39"
+        };
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
@@ -132,21 +132,22 @@ const firebaseConfig = {
                 return;
             }
 
-            // --- 과거 세차 이력 조회 기능 ---
-            let pastWashMonth = null;
+            // --- 다중 과거 세차 이력 조회 기능 ---
+            let pastWashMonthsString = null;
             try {
                 const washHistoryRef = doc(db, "washHistory", name);
                 const docSnap = await getDoc(washHistoryRef);
 
                 if (docSnap.exists()) {
                     const washData = docSnap.data();
-                    if (washData.date) {
-                        pastWashMonth = (washData.date.toDate().getMonth() + 1) + '월';
+                    if (washData.dates && Array.isArray(washData.dates) && washData.dates.length > 0) {
+                        const pastMonths = washData.dates.map(ts => (ts.toDate().getMonth() + 1));
+                        const uniqueSortedMonths = [...new Set(pastMonths)].sort((a, b) => a - b);
+                        pastWashMonthsString = uniqueSortedMonths.map(m => `${m}월`).join(', ');
                     }
                 }
             } catch (error) {
                 console.error("과거 이력 조회 중 오류:", error);
-                // 오류가 발생해도 신청은 계속 진행되도록 함
             }
 
             // --- 신청 데이터 저장 ---
@@ -163,11 +164,10 @@ const firebaseConfig = {
             try {
                 await addDoc(collection(db, "applications"), formData);
                 
-                // --- 팝업 메시지 생성 ---
                 let title = '신청이 완료되었습니다.';
                 let message = '전월 또는 전전월에 세차 서비스를 받으셨을 경우<br>우선순위에서 제외될 수 있습니다.';
-                if (pastWashMonth) {
-                    message += `<br><br><span class="font-bold">(과거 세차 이력: ${pastWashMonth})</span>`;
+                if (pastWashMonthsString) {
+                    message += `<br><br><span class="font-bold">(과거 세차 이력: ${pastWashMonthsString})</span>`;
                 } else {
                      message = '소중한 참여에 감사드립니다!';
                 }
