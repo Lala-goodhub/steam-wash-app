@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>스팀 세차 실습 차량 신청서</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Jua', sans-serif; background-color: #F0F9FF; }
+        .form-container { background-color: white; border-radius: 20px; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08); border: 1px solid #E0E7FF; }
+        .header-title { color: #1E40AF; }
+        .header-subtitle { color: #3B82F6; }
+        .form-label { color: #475569; font-weight: 600; }
+        .form-input, .form-textarea { background-color: #F9FAFB; border-color: #D1D5DB; border-radius: 12px; transition: all 0.3s ease; }
+        .form-input:focus, .form-textarea:focus { outline: none; box-shadow: 0 0 0 3px #93C5FD; background-color: white; }
+        .btn-group button { transition: all 0.2s ease-in-out; border: 2px solid transparent; }
+        .btn-group button.selected { border-color: #2563EB; background-color: #DBEAFE; color: #1E40AF; transform: scale(1.05); }
+        .submit-btn { background: linear-gradient(90deg, #3B82F6, #60A5FA); color: white; border-radius: 12px; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3); }
+        .submit-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4); }
+        .modal { transition: opacity 0.3s ease-in-out; }
+        .modal-container { transition: transform 0.3s ease-in-out; }
+    </style>
+</head>
+<body class="p-4 sm:p-8 flex items-center justify-center min-h-screen">
+    <div class="form-container max-w-2xl w-full p-6 sm:p-10">
+        <div class="text-center mb-8">
+            <h1 class="header-title text-3xl sm:text-4xl font-bold">스팀 세차 실습 차량 신청서</h1>
+            <p class="header-subtitle mt-2 text-lg">✨ 뽀득뽀득! 실습에 참여할 차량 정보를 남겨주세요! ✨</p>
+        </div>
+
+        <form id="washForm" class="space-y-6">
+            <div>
+                <label class="form-label block mb-2 text-md">과정</label>
+                <div class="btn-group grid grid-cols-2 sm:grid-cols-5 gap-3" data-group="course">
+                    <button type="button" class="p-3 bg-slate-100 rounded-lg text-slate-700">초등과정</button>
+                    <button type="button" class="p-3 bg-slate-100 rounded-lg text-slate-700">중학과정</button>
+                    <button type="button" class="p-3 bg-slate-100 rounded-lg text-slate-700">고등과정</button>
+                    <button type="button" class="p-3 bg-slate-100 rounded-lg text-slate-700">전공과정</button>
+                    <button type="button" class="p-3 bg-slate-100 rounded-lg text-slate-700">그외</button>
+                </div>
+            </div>
+            
+            <div>
+                <label for="name" class="form-label block mb-2 text-md">성함</label>
+                <input type="text" id="name" name="name" class="form-input w-full p-3" placeholder="홍길동" required>
+            </div>
+
+            <div>
+                <label class="form-label block mb-2 text-md">차종</label>
+                <div class="btn-group grid grid-cols-1 sm:grid-cols-3 gap-3" data-group="carType">
+                    <button type="button" class="p-3 bg-slate-100 rounded-lg text-slate-700"><b>경차</b><br><span class="text-xs font-normal">(모닝, 스파크 등)</span></button>
+                    <button type="button" class="p-3 bg-slate-100 rounded-lg text-slate-700"><b>준중형</b><br><span class="text-xs font-normal">(아반떼, K3 등)</span></button>
+                    <button type="button" class="p-3 bg-slate-100 rounded-lg text-slate-700"><b>그외</b><br><span class="text-xs font-normal">(소나타, SUV 등)</span></button>
+                </div>
+            </div>
+
+            <div>
+                <label for="carNumber" class="form-label block mb-2 text-md">차량번호</label>
+                <input type="text" id="carNumber" name="carNumber" class="form-input w-full p-3" placeholder="예시: 123가1234" required>
+            </div>
+            
+            <div>
+                <label class="form-label block mb-2 text-md">세차 가능 요일 (복수선택 가능)</label>
+                <div class="btn-group grid grid-cols-1 sm:grid-cols-3 gap-3" data-group="selectedDays" data-multiselect="true">
+                    <button type="button" class="p-3 bg-slate-100 rounded-lg text-slate-700"><b>화요일 오전</b><br><span class="text-xs font-normal">(09시 ~ 12시)</span></button>
+                    <button type="button" class="p-3 bg-slate-100 rounded-lg text-slate-700"><b>목요일 오후</b><br><span class="text-xs font-normal">(13시 ~ 15시20분)</span></button>
+                    <button type="button" class="p-3 bg-slate-100 rounded-lg text-slate-700"><b>금요일 오전</b><br><span class="text-xs font-normal">(09시 ~ 12시)</span></button>
+                </div>
+            </div>
+
+            <div>
+                <label for="notes" class="form-label block mb-2 text-md">기타 고려사항</label>
+                <textarea id="notes" name="notes" rows="3" class="form-textarea w-full p-3" placeholder="예시: 트렁크는 열지 마세요."></textarea>
+            </div>
+
+            <div class="pt-4">
+                <button type="submit" class="submit-btn w-full p-4 text-lg font-bold">신청하기</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Modal -->
+    <div id="modal" class="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden opacity-0">
+        <div class="modal-container bg-white rounded-2xl shadow-2xl p-8 max-w-sm w-full text-center scale-95">
+            <h2 id="modalTitle" class="text-2xl font-bold text-blue-800 mb-4">🎉</h2>
+            <p id="modalMessage" class="text-slate-600 mb-6"></p>
+            <button id="closeModalBtn" class="bg-blue-600 text-white font-bold py-2 px-6 rounded-full hover:bg-blue-700 transition">확인</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAdoYLtY5BbKh2YSQ3CoFkMKafCY6D87jE",
+  authDomain: "saecha-da5c3.firebaseapp.com",
+  projectId: "saecha-da5c3",
+  storageBucket: "saecha-da5c3.firebasestorage.app",
+  messagingSenderId: "770472695100",
+  appId: "1:770472695100:web:0573e866b53ffb41967a39"
+};
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const form = document.getElementById('washForm');
+        const modal = document.getElementById('modal');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+
+        // 버튼 그룹 선택 로직
+        document.querySelectorAll('.btn-group').forEach(group => {
+            const isMultiSelect = group.dataset.multiselect === 'true';
+            group.addEventListener('click', e => {
+                if (e.target.tagName === 'BUTTON' || e.target.closest('button')) {
+                    const button = e.target.closest('button');
+                    if (isMultiSelect) {
+                        button.classList.toggle('selected');
+                    } else {
+                        group.querySelectorAll('button').forEach(btn => btn.classList.remove('selected'));
+                        button.classList.add('selected');
+                    }
+                }
+            });
+        });
+
+        // 폼 제출 로직
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const name = document.getElementById('name').value;
+            const carNumber = document.getElementById('carNumber').value;
+            if (!name || !carNumber) {
+                alert('성함과 차량번호는 필수 항목입니다.');
+                return;
+            }
+
+            const formData = {
+                course: document.querySelector('[data-group="course"] .selected')?.textContent.trim() || '',
+                name: name,
+                carType: document.querySelector('[data-group="carType"] .selected')?.textContent.trim() || '',
+                carNumber: carNumber,
+                selectedDays: Array.from(document.querySelectorAll('[data-group="selectedDays"] .selected')).map(btn => btn.textContent.trim()),
+                notes: document.getElementById('notes').value,
+                timestamp: serverTimestamp()
+            };
+
+            try {
+                await addDoc(collection(db, "applications"), formData);
+                showModal('신청 완료!', '신청이 성공적으로 접수되었습니다.<br>소중한 참여에 감사드립니다!');
+                form.reset();
+                document.querySelectorAll('.btn-group button').forEach(btn => btn.classList.remove('selected'));
+            } catch (error) {
+                console.error("Firestore 저장 오류:", error);
+                showModal('오류 발생', `신청서 접수 중 문제가 발생했습니다.<br>잠시 후 다시 시도해주세요.`);
+            }
+        });
+
+        // 모달창 로직
+        function showModal(title, message) {
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('modalMessage').innerHTML = message;
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                modal.querySelector('.modal-container').classList.remove('scale-95');
+            }, 10);
+        }
+
+        function hideModal() {
+            modal.classList.add('opacity-0');
+            modal.querySelector('.modal-container').classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+
+        closeModalBtn.addEventListener('click', hideModal);
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) hideModal();
+        });
+    </script>
+</body>
+</html>
+

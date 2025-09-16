@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>관리자 페이지</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Jua', sans-serif; background-color: #F0F9FF; }
+        .admin-container { background-color: white; border-radius: 20px; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08); border: 1px solid #E0E7FF; }
+        .header-title { color: #1E40AF; }
+        .info-box { background-color: #EFF6FF; border-left: 4px solid #3B82F6; }
+        .btn-primary { background-color: #2563EB; color: white; transition: background-color 0.3s ease; }
+        .btn-primary:hover { background-color: #1D4ED8; }
+        .btn-danger { background-color: #DC2626; color: white; transition: background-color 0.3s ease; }
+        .btn-danger:hover { background-color: #B91C1C; }
+        table { border-collapse: separate; border-spacing: 0; }
+        th, td { border-bottom: 1px solid #E5E7EB; }
+        th { background-color: #F9FAFB; }
+    </style>
+</head>
+<body class="p-4 sm:p-8">
+    <div class="admin-container max-w-4xl mx-auto p-6 sm:p-8">
+        <div class="text-center mb-8">
+            <h1 class="header-title text-3xl sm:text-4xl font-bold">👑 관리자 페이지 👑</h1>
+            <p class="text-slate-500 mt-2">세차 기록 CSV 파일 관리 및 실시간 신청 현황을 확인합니다.</p>
+        </div>
+
+        <div class="mb-10">
+            <h2 class="text-xl font-bold text-slate-700 mb-3">1. 세차 기록 관리</h2>
+            <div class="info-box p-4 rounded-lg mb-4">
+                <p class="text-sm text-blue-800">
+                    <strong class="font-bold">CSV 파일 양식 안내:</strong><br>
+                    첫 번째 줄은 제목 줄이어야 합니다. 반드시 <strong class="text-red-600">'이름'</strong>과 <strong class="text-red-600">'월'</strong>이 포함된 열이 있어야 합니다.<br>
+                    (예시: 연번,이름,년도,월)
+                </p>
+            </div>
+            <div class="flex flex-col sm:flex-row items-center gap-4">
+                <input type="file" id="csvFile" accept=".csv" class="flex-grow w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                <button id="uploadBtn" class="btn-primary w-full sm:w-auto rounded-full px-6 py-2.5 font-bold text-sm shadow-lg">기록 업로드 & 덮어쓰기</button>
+            </div>
+            <div id="status" class="mt-4 text-center"></div>
+        </div>
+
+        <div>
+            <div class="flex justify-between items-center mb-3">
+                <h2 class="text-xl font-bold text-slate-700">2. 실시간 신청 현황</h2>
+                <button id="clearApplicationsBtn" class="btn-danger rounded-full px-5 py-2 text-xs font-bold shadow-md">신청 목록 전체 삭제</button>
+            </div>
+            <div class="overflow-x-auto bg-white rounded-lg shadow-md">
+                <table class="w-full text-sm text-left text-gray-500">
+                    <thead class="text-xs text-gray-700 uppercase">
+                        <tr>
+                            <th scope="col" class="px-6 py-3">신청일시</th>
+                            <th scope="col" class="px-6 py-3">과정</th>
+                            <th scope="col" class="px-6 py-3">성함</th>
+                            <th scope="col" class="px-6 py-3">차종</th>
+                            <th scope="col" class="px-6 py-3">차량번호</th>
+                            <th scope="col" class="px-6 py-3">선택요일</th>
+                        </tr>
+                    </thead>
+                    <tbody id="applicationList">
+                        <!-- 신청 내역이 여기에 동적으로 추가됩니다 -->
+                    </tbody>
+                </table>
+                 <div id="noApplications" class="text-center py-10 text-slate-400">
+                    아직 접수된 신청이 없습니다.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, doc, addDoc, getDocs, deleteDoc, onSnapshot, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAdoYLtY5BbKh2YSQ3CoFkMKafCY6D87jE",
+  authDomain: "saecha-da5c3.firebaseapp.com",
+  projectId: "saecha-da5c3",
+  storageBucket: "saecha-da5c3.firebasestorage.app",
+  messagingSenderId: "770472695100",
+  appId: "1:770472695100:web:0573e866b53ffb41967a39"
+};
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const fileInput = document.getElementById('csvFile');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const statusDiv = document.getElementById('status');
+        const applicationList = document.getElementById('applicationList');
+        const noApplications = document.getElementById('noApplications');
+        const clearApplicationsBtn = document.getElementById('clearApplicationsBtn');
+
+        // CSV 업로드 기능
+        uploadBtn.addEventListener('click', async () => {
+            const file = fileInput.files[0];
+            if (!file) {
+                statusDiv.textContent = '먼저 CSV 파일을 선택해주세요.';
+                statusDiv.className = 'mt-4 text-center text-yellow-600';
+                return;
+            }
+
+            statusDiv.textContent = '파일을 읽고 Firestore와 통신하는 중...';
+            statusDiv.className = 'mt-4 text-center text-blue-600';
+
+            const reader = new FileReader();
+            reader.onload = async (event) => {
+                const csvData = event.target.result;
+                const lines = csvData.split(/\r\n|\n/);
+                const headerLine = lines[0];
+
+                try {
+                    const historyCollection = collection(db, "washHistory");
+                    
+                    const snapshot = await getDocs(historyCollection);
+                    const deletePromises = snapshot.docs.map(doc => deleteDoc(doc.ref));
+                    await Promise.all(deletePromises);
+
+                    const addPromises = [];
+                    const header = headerLine.split(',').map(h => h.trim());
+                    const nameIndex = header.findIndex(h => h.includes('이름'));
+                    const monthIndex = header.findIndex(h => h.includes('월'));
+
+                    if (nameIndex === -1 || monthIndex === -1) {
+                        throw new Error("CSV 파일에 '이름'과 '월' 열이 포함되어야 합니다.");
+                    }
+
+                    for (let i = 1; i < lines.length; i++) {
+                        const line = lines[i];
+                        if (line.trim() === '') continue;
+                        const values = line.split(',');
+                        const name = values[nameIndex] ? values[nameIndex].trim() : '';
+                        const month = values[monthIndex] ? parseInt(values[monthIndex].trim(), 10) : NaN;
+
+                        if (name && !isNaN(month)) {
+                            const currentYear = new Date().getFullYear();
+                            const washDate = new Date(currentYear, month - 1, 15);
+                            addPromises.push(addDoc(historyCollection, { name, washDate }));
+                        }
+                    }
+                    await Promise.all(addPromises);
+                    statusDiv.textContent = '✅ 세차 기록을 성공적으로 Firestore에 저장했습니다!';
+                    statusDiv.className = 'mt-4 text-center text-green-600 font-bold';
+
+                } catch (error) {
+                    console.error("Firestore 저장 중 심각한 오류 발생:", error);
+                    let errorMessage = 'Firestore에 데이터를 저장하는 중 문제가 발생했습니다.';
+                    if (error.code === 'permission-denied') {
+                        errorMessage = '🚨 Firestore 저장 권한이 없습니다! 파이어베이스 "규칙" 탭이 "allow read, write: if true;"로 설정되었는지 다시 확인해주세요!';
+                    } else if (error.message.includes('열이 포함되어야 합니다')) {
+                        errorMessage = '🚨 업로드한 CSV 파일에 "이름" 또는 "월" 열이 빠져있습니다. 파일 양식을 다시 확인해주세요!';
+                    } else {
+                        errorMessage += `<br><span class="text-xs">상세 오류(개발자용): ${error.message}</span>`;
+                    }
+                    statusDiv.innerHTML = errorMessage;
+                    statusDiv.className = 'mt-4 text-center text-red-600 leading-relaxed font-bold';
+                }
+            };
+            reader.readAsText(file, 'EUC-KR');
+        });
+
+        // 실시간 신청 현황 리스너
+        const q = query(collection(db, "applications"), orderBy("timestamp", "desc"));
+        onSnapshot(q, (snapshot) => {
+            applicationList.innerHTML = '';
+            if (snapshot.empty) {
+                noApplications.style.display = 'block';
+            } else {
+                noApplications.style.display = 'none';
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    const tr = document.createElement('tr');
+                    tr.className = "bg-white border-b hover:bg-gray-50";
+                    const timestamp = data.timestamp?.toDate ? data.timestamp.toDate().toLocaleString('ko-KR') : '날짜 없음';
+                    tr.innerHTML = `
+                        <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">${timestamp}</td>
+                        <td class="px-6 py-4">${data.course || ''}</td>
+                        <td class="px-6 py-4">${data.name || ''}</td>
+                        <td class="px-6 py-4">${data.carType || ''}</td>
+                        <td class="px-6 py-4">${data.carNumber || ''}</td>
+                        <td class="px-6 py-4">${(data.selectedDays || []).join(', ')}</td>
+                    `;
+                    applicationList.appendChild(tr);
+                });
+            }
+        });
+
+        // 신청 목록 삭제 기능
+        clearApplicationsBtn.addEventListener('click', async () => {
+            if (confirm('정말로 모든 신청 내역을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) {
+                try {
+                    const appCollection = collection(db, "applications");
+                    const snapshot = await getDocs(appCollection);
+                    const deletePromises = snapshot.docs.map(doc => deleteDoc(doc.ref));
+                    await Promise.all(deletePromises);
+                    alert('모든 신청 내역이 삭제되었습니다.');
+                } catch (error) {
+                    console.error("신청 내역 삭제 오류:", error);
+                    alert('신청 내역을 삭제하는 중 오류가 발생했습니다.');
+                }
+            }
+        });
+    </script>
+</body>
+</html>
+
