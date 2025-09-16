@@ -110,7 +110,8 @@
             if (selectedFile) {
                 const reader = new FileReader();
                 reader.onload = (e) => processCSV(e.target.result);
-                reader.readAsText(selectedFile);
+                // ✨ 최첨단 한글 번역 시스템 장착! ✨
+                reader.readAsText(selectedFile, 'EUC-KR'); 
             }
         });
         function handleDrop(e) { handleFiles(e.dataTransfer.files); }
@@ -139,7 +140,6 @@
             const nameIndex = header.indexOf('이름'); const monthIndex = header.indexOf('월'); const yearIndex = header.indexOf('년도');
 
             if (nameIndex === -1 || monthIndex === -1) { 
-                // ✨ 초정밀 분석 장비 탑재! ✨
                 const errorDetail = `[감지된 헤더: ${JSON.stringify(header)}]`;
                 displayError(`CSV 파일 헤더에 '이름'과 '월'이 포함되어야 합니다. ${errorDetail}`);
                 processUploadBtn.disabled = selectedFile ? false : true; 
