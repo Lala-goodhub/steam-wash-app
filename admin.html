@@ -72,7 +72,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, doc, onSnapshot, query, writeBatch, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, doc, onSnapshot, query, writeBatch, getDocs, deleteDoc, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
           apiKey: "AIzaSyAdoYLtY5BbKh2YSQ3CoFkMKafCY6D87jE",
@@ -145,7 +145,6 @@
                 return; 
             }
             
-            // --- 다중 기록 저장을 위한 데이터 구조 변경 ---
             const recordsByName = {};
             for (let i = 1; i < lines.length; i++) {
                 const data = lines[i].split(',');
@@ -181,8 +180,8 @@
             } finally { processUploadBtn.disabled = selectedFile ? false : true; }
         }
         
-        // --- 실시간 신청 현황 (월별 그룹핑) ---
-        const q = query(collection(db, "applications"));
+        // --- 실시간 신청 현황 (시간순 정렬 기능 탑재!) ---
+        const q = query(collection(db, "applications"), orderBy("timestamp", "asc"));
         onSnapshot(q, (querySnapshot) => {
             const groupedByMonth = {};
             querySnapshot.forEach((doc) => {
